@@ -32,7 +32,7 @@ All of the necessary code is found in the `lib` folder and can be copy-pasted to
 Here is a minimal example on how to use Bucket Glyph's library functions:
 
 ```js
-const liquidLevels = [0, 0.2, 0.4, 0.6, 0.8, 1.0].map(
+const liquidLevels = [1.0, 0.8, 0.6, 0.4, 0.2, 0.0].map(
   (p) => d3.quantile(sortedData, p) / d3.max(sortedData)
 );
 
