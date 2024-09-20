@@ -1,0 +1,86 @@
+:root {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  color: #333;
+}
+
+body {
+  background-color: rgb(255, 245, 231);
+}
+
+text {
+  fill: currentColor;
+}
+
+.main-scrolly {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-scrolly > div {
+  --borderRadius: 0.2rem;
+
+  border-radius: var(--borderRadius);
+  width: min(90rem, 100%);
+  margin-inline: auto;
+  text-align: center;
+  background-color: rgb(255, 248, 239);
+  position: relative;
+}
+
+.main-scrolly > div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--borderRadius);
+  box-shadow: rgba(122, 80, 20, 0.25) 0px 54px 55px,
+    rgba(122, 80, 20, 0.12) 0px -12px 30px, rgba(122, 80, 20, 0.12) 0px 4px 6px,
+    rgba(122, 80, 20, 0.17) 0px 12px 13px, rgba(122, 80, 20, 0.09) 0px -3px 5px;
+  transition: opacity 0.2s;
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.main-scrolly > div.focused::after {
+  opacity: 1;
+}
+
+.main-scrolly > :first-child {
+  --approx-card-height: 20rem;
+  margin-top: calc(50vh - var(--approx-card-height) / 2);
+  margin-bottom: calc(50vh - var(--approx-card-height) / 2);
+}
+
+.main-scrolly > :last-child {
+  margin-block: 20vh;
+}
+
+.scroll-card {
+  padding: 1rem;
+  max-width: 30rem;
+}
+
+.example-vizes-card {
+  margin-block: 2rem;
+  padding: 1rem;
+}
+
+.vizes {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.axis-y-label {
+  text-anchor: middle;
+  alignment-baseline: hanging;
+}
+
+.bar-graph .axis-x .tick text {
+  transform: translate(-10px, 0px) rotate(-45deg);
+  text-anchor: end;
+}
+
+.bars {
+  fill: steelblue;
+}
