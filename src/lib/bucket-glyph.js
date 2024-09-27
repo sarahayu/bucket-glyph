@@ -77,7 +77,7 @@ function bucketShape(
       .attr("class", "bucket-mask-path");
 
     s.append("g")
-      .attr("class", "graph-area")
+      .attr("class", "masked-area")
       .attr("transform", `translate(${width / 2}, ${height / 2})`)
       .attr("clip-path", `url(#bucket-mask-${id})`);
 

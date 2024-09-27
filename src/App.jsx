@@ -1,4 +1,10 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Scrollama, Step } from "react-scrollama";
 import * as d3 from "d3";
 
@@ -19,7 +25,7 @@ import {
 
 import { exampleData, MAX_VALUE } from "data/example-data";
 
-import { invLerp, ticksExact } from "./utils";
+import { invLerp, collideOffsetter, ticksExact } from "./utils";
 
 const DEFAULT_GRAPH_DATA = exampleData[0].delivs.map(() => 0);
 const DATA_RANGE = [0, MAX_VALUE];
@@ -91,11 +97,6 @@ export default function Main() {
                 <DotHistogramVert
                   data={graphData[i]}
                   width={160}
-                  height={200}
-                />
-                <DotHistogramHoriz
-                  data={graphData[i]}
-                  width={250}
                   height={200}
                 />
               </div>
@@ -185,38 +186,52 @@ function BarGraph({ data, width, height }) {
   );
 }
 
-export function BucketGlyph({ sortedData, width, height, resolution = 10 }) {
+const PERCENTILE_LABELS = [
+  "Maximum",
+  "75th Percentile",
+  "50th Percentile",
+  "25th Percentile",
+  "Minimum",
+];
+
+export function BucketGlyph({ sortedData, width, height, resolution = 4 }) {
   const LINE_WIDTH = 3;
-  const innerWidth = width - LINE_WIDTH * 2;
-  const innerHeight = height - LINE_WIDTH;
+  const GLYPH_MARGIN = {
+    top: 30,
+    right: LINE_WIDTH / 2,
+    bottom: 30,
+    left: 120,
+  };
 
   const svgElement = useRef();
 
   useLayoutEffect(function initialize() {
     const svgContainer = svgElement.current
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", width + GLYPH_MARGIN.left + GLYPH_MARGIN.right)
+      .attr("height", height + GLYPH_MARGIN.top + GLYPH_MARGIN.bottom)
       .append("g")
-      .attr("class", "bucket")
-      .attr("transform", `translate(${LINE_WIDTH}, ${LINE_WIDTH / 2})`);
+      .attr("class", "graph-area")
+      .attr("transform", `translate(${GLYPH_MARGIN.left},${GLYPH_MARGIN.top})`);
 
     svgContainer.call(
-      bucketShape(innerWidth, innerHeight, drawBucketMask, drawBucketOutline)
+      bucketShape(width, height, drawBucketMask, drawBucketOutline)
     );
   }, []);
 
   useLayoutEffect(
     function onDataChange() {
+      // liquid levels
       const liquidLevels = ticksExact(1, 0, resolution + 1).map(
         (p) => d3.quantile(sortedData, p) / MAX_VALUE
       );
 
-      const glyph = bucketGlyph(innerWidth, innerHeight);
+      const glyph = bucketGlyph(width, height);
+      const data = glyph(liquidLevels);
 
       const liquids = svgElement.current
-        .select(".graph-area")
+        .select(".masked-area")
         .selectAll(".bucket-box")
-        .data(glyph(liquidLevels))
+        .data(data)
         .join("rect")
         .attr("class", "bucket-box")
         .attr("width", (d) => d.width)
@@ -225,6 +240,51 @@ export function BucketGlyph({ sortedData, width, height, resolution = 10 }) {
         .attr("fill", (_, i) => interpolateWatercolorBlue(i / resolution));
 
       transitionSway(liquids).attr("y", (d) => d.y);
+
+      // percentile labels that appear on the side
+      const reverseData = data.reverse();
+
+      const labelWidth = 80,
+        labelHeight = 15;
+
+      const xOffset = collideOffsetter(reverseData, labelHeight);
+
+      const tagElem = (s) =>
+        s.append("g").call((s) => {
+          s.append("rect");
+          s.append("text");
+        });
+
+      const labels = svgElement.current
+        .select(".graph-area")
+        .selectAll(".bucket-label")
+        .data(reverseData)
+        .join(tagElem)
+        .attr("class", "bucket-label")
+        .transition()
+        .attr(
+          "transform",
+          (d, i) =>
+            `translate(${-labelWidth / 2 - 3 + xOffset(i)}, ${
+              d.y + height / 2
+            })`
+        );
+
+      labels
+        .select("text")
+        .text((_, i) => PERCENTILE_LABELS[data.length - 1 - i])
+        .style("fill", (_, i) => (i > data.length / 2 ? "black" : "white"));
+
+      labels
+        .select("rect")
+        .attr("width", labelWidth)
+        .attr("height", labelHeight)
+        .attr("x", -labelWidth / 2)
+        .attr("y", -labelHeight / 2)
+        .attr("rx", 3)
+        .style("fill", (_, i) =>
+          interpolateWatercolorBlue((data.length - 1 - i) / resolution)
+        );
     },
     [sortedData]
   );
@@ -232,36 +292,42 @@ export function BucketGlyph({ sortedData, width, height, resolution = 10 }) {
   return <svg ref={(e) => void (svgElement.current = d3.select(e))}></svg>;
 }
 
-export function DropletGlyph({ sortedData, width, height, resolution = 10 }) {
+export function DropletGlyph({ sortedData, width, height, resolution = 4 }) {
   const LINE_WIDTH = 3;
-  const innerWidth = width - LINE_WIDTH * 2;
-  const innerHeight = height - LINE_WIDTH;
+  const GLYPH_MARGIN = {
+    top: 30,
+    right: LINE_WIDTH / 2,
+    bottom: 30,
+    left: 100,
+  };
 
   const svgElement = useRef();
 
   useLayoutEffect(function initialize() {
     const svgContainer = svgElement.current
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", width + GLYPH_MARGIN.left + GLYPH_MARGIN.right)
+      .attr("height", height + GLYPH_MARGIN.top + GLYPH_MARGIN.bottom)
       .append("g")
-      .attr("class", "bucket")
-      .attr("transform", `translate(${LINE_WIDTH}, ${LINE_WIDTH / 2})`);
+      .attr("class", "graph-area")
+      .attr("transform", `translate(${GLYPH_MARGIN.left},${GLYPH_MARGIN.top})`);
 
-    svgContainer.call(bucketShape(innerWidth, innerHeight, drawDroplet));
+    svgContainer.call(bucketShape(height, width, drawDroplet));
   }, []);
 
   useLayoutEffect(
     function onDataChange() {
+      // liquid levels
       const liquidLevels = ticksExact(1, 0, resolution + 1).map((p) =>
         invLerp(d3.quantile(sortedData, p), ...DATA_RANGE)
       );
 
-      const glyph = bucketGlyph(innerWidth, innerHeight, levelToDropletLevel);
+      const glyph = bucketGlyph(height, width, levelToDropletLevel);
+      const data = glyph(liquidLevels);
 
       const liquids = svgElement.current
-        .select(".graph-area")
+        .select(".masked-area")
         .selectAll(".bucket-box")
-        .data(glyph(liquidLevels))
+        .data(data)
         .join("rect")
         .attr("class", "bucket-box")
         .attr("width", (d) => d.width)
@@ -270,6 +336,49 @@ export function DropletGlyph({ sortedData, width, height, resolution = 10 }) {
         .attr("fill", (_, i) => interpolateWatercolorBlue(i / resolution));
 
       transitionSway(liquids).attr("y", (d) => d.y);
+
+      // percentile labels that appear on the side
+      const reverseData = data.reverse();
+
+      const labelWidth = 80,
+        labelHeight = 15;
+
+      const xOffset = collideOffsetter(reverseData, labelHeight);
+
+      const tagElem = (s) =>
+        s.append("g").call((s) => {
+          s.append("rect");
+          s.append("text");
+        });
+
+      const labels = svgElement.current
+        .select(".graph-area")
+        .selectAll(".bucket-label")
+        .data(reverseData)
+        .join(tagElem)
+        .attr("class", "bucket-label")
+        .transition()
+        .attr(
+          "transform",
+          (d, i) =>
+            `translate(${-labelWidth / 2 + xOffset(i)}, ${d.y + height / 2})`
+        );
+
+      labels
+        .select("text")
+        .text((_, i) => PERCENTILE_LABELS[data.length - 1 - i])
+        .style("fill", (_, i) => (i > data.length / 2 ? "black" : "white"));
+
+      labels
+        .select("rect")
+        .attr("width", labelWidth)
+        .attr("height", labelHeight)
+        .attr("x", -labelWidth / 2)
+        .attr("y", -labelHeight / 2)
+        .attr("rx", 3)
+        .style("fill", (_, i) =>
+          interpolateWatercolorBlue((data.length - 1 - i) / resolution)
+        );
     },
     [sortedData]
   );
@@ -424,9 +533,9 @@ function DotHistogramVert({ data, width, height, numCircles = 25 }) {
   return <svg ref={(e) => void (svgElement.current = d3.select(e))}></svg>;
 }
 
-function IntroCard() {
+const IntroCard = forwardRef(function IntroCard(props, ref) {
   return (
-    <div className="scroll-card">
+    <div ref={ref} className="scroll-card">
       <p>
         <a target="_blank" href="https://github.com/sarahayu/bucket-glyph">
           Bucket Glyph
@@ -445,4 +554,4 @@ function IntroCard() {
       <p>Scroll to view some example visualizations!</p>
     </div>
   );
-}
+});

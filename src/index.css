@@ -84,3 +84,9 @@ text {
 .bars {
   fill: steelblue;
 }
+
+.bucket-label text {
+  text-anchor: middle;
+  font-size: 0.5rem;
+  alignment-baseline: middle;
+}
