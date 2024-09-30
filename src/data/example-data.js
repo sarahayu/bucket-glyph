@@ -1,6 +1,7 @@
 import * as d3 from "d3";
+import callite_data from "./callite.json";
 
-const MAX_VALUE = 1000;
+const MAX_VALUE = 10000;
 const NUM_YEARS = 50;
 
 function initializeExampleData() {
@@ -42,6 +43,18 @@ function initializeExampleData() {
       delivs: d3
         .range(NUM_YEARS)
         .map((_, i) => (Math.random() / 10) * MAX_VALUE + MAX_VALUE / 3),
+    },
+    {
+      name: "callite_0570",
+      delivs: callite_data.callite_0570,
+    },
+    {
+      name: "callite_0221",
+      delivs: callite_data.callite_0221,
+    },
+    {
+      name: "callite_0023",
+      delivs: callite_data.callite_0023,
     },
   ];
 

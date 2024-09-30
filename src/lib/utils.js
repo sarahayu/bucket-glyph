@@ -38,12 +38,9 @@ const interpolateWatercolorBlue = (i) =>
 
 function levelToDropletLevel(p) {
   p -= 0.0088;
-  return Math.min(
-    1,
-    Math.max(
-      0,
-      (3.1304 * p ** 3 - 4.2384 * p ** 2 + 3.3471 * p + 0.0298) / 2.2326
-    )
+  return Math.max(
+    0,
+    (3.1304 * p ** 3 - 4.2384 * p ** 2 + 3.3471 * p + 0.0298) / 2.2326
   );
 }
 
