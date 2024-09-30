@@ -54,17 +54,17 @@ function initializeExampleData() {
     },
     // start real data
     {
-      name: "callite_0570",
+      name: "CalLite Delivery 1",
       delivs: callite_data.callite_0570,
       range: [0, 7000],
     },
     {
-      name: "callite_0221",
+      name: "CalLite Delivery 2",
       delivs: callite_data.callite_0221,
       range: [0, 7000],
     },
     {
-      name: "callite_0023",
+      name: "CalLite Delivery 3",
       delivs: callite_data.callite_0023,
       range: [0, 7000],
     },
