@@ -23,7 +23,7 @@ This library also provides functions for generating quantile histograms that may
 
 ## Usage
 
-All of the necessary code is found in the `lib` folder and can be copy-pasted to your project. Some important notes:
+All of the necessary code is found in the `src/lib` folder and can be copy-pasted to your project. Some important notes:
 
 - This project uses `npm`.
 - Bucket Glyph needs [d3js](https://d3js.org/) installed.
