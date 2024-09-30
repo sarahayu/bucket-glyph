@@ -23,12 +23,11 @@ import {
   WATERDROP_ICON,
 } from "lib/utils";
 
-import { exampleData, MAX_VALUE } from "data/example-data";
+import { exampleData } from "data/example-data";
 
 import { invLerp, collideOffsetter, ticksExact } from "./utils";
 
 const DEFAULT_GRAPH_DATA = exampleData[0].delivs.map(() => 0);
-const DATA_RANGE = [0, MAX_VALUE];
 
 export default function Main() {
   const [graphData, setGraphData] = useState(
@@ -83,19 +82,27 @@ export default function Main() {
             <div className="example-vizes-card">
               <span>{exampleData[i].name}</span>
               <div className="vizes">
-                <BarGraph data={graphData[i]} width={300} height={200} />
+                <BarGraph
+                  data={graphData[i]}
+                  range={exampleData[i].range}
+                  width={300}
+                  height={200}
+                />
                 <BucketGlyph
                   sortedData={sortedGraphData[i]}
+                  range={exampleData[i].range}
                   width={150}
                   height={200}
                 />
                 <DropletGlyph
                   sortedData={sortedGraphData[i]}
+                  range={exampleData[i].range}
                   width={200}
                   height={200}
                 />
                 <DotHistogramVert
                   data={graphData[i]}
+                  range={exampleData[i].range}
                   width={160}
                   height={200}
                 />
@@ -111,7 +118,7 @@ export default function Main() {
   );
 }
 
-function BarGraph({ data, width, height }) {
+function BarGraph({ data, range, width, height }) {
   const CHART_MARGIN = { top: 40, right: 40, bottom: 40, left: 50 };
 
   const svgElement = useRef();
@@ -146,7 +153,7 @@ function BarGraph({ data, width, height }) {
         .domain(data.map((_, i) => i))
         .range([0, width])
         .padding(0.4);
-      const y = d3.scaleLinear().domain(DATA_RANGE).range([height, 0]);
+      const y = d3.scaleLinear().domain(range).range([height, 0]);
 
       const xaxis = d3
         .axisBottom(x)
@@ -194,7 +201,13 @@ const PERCENTILE_LABELS = [
   "Minimum",
 ];
 
-export function BucketGlyph({ sortedData, width, height, resolution = 4 }) {
+export function BucketGlyph({
+  sortedData,
+  range,
+  width,
+  height,
+  resolution = 4,
+}) {
   const LINE_WIDTH = 3;
   const GLYPH_MARGIN = {
     top: 30,
@@ -221,8 +234,8 @@ export function BucketGlyph({ sortedData, width, height, resolution = 4 }) {
   useLayoutEffect(
     function onDataChange() {
       // liquid levels
-      const liquidLevels = ticksExact(1, 0, resolution + 1).map(
-        (p) => d3.quantile(sortedData, p) / MAX_VALUE
+      const liquidLevels = ticksExact(1, 0, resolution + 1).map((p) =>
+        invLerp(d3.quantile(sortedData, p), ...range)
       );
 
       const glyph = bucketGlyph(width, height);
@@ -292,7 +305,13 @@ export function BucketGlyph({ sortedData, width, height, resolution = 4 }) {
   return <svg ref={(e) => void (svgElement.current = d3.select(e))}></svg>;
 }
 
-export function DropletGlyph({ sortedData, width, height, resolution = 4 }) {
+export function DropletGlyph({
+  sortedData,
+  range,
+  width,
+  height,
+  resolution = 4,
+}) {
   const LINE_WIDTH = 3;
   const GLYPH_MARGIN = {
     top: 30,
@@ -318,7 +337,7 @@ export function DropletGlyph({ sortedData, width, height, resolution = 4 }) {
     function onDataChange() {
       // liquid levels
       const liquidLevels = ticksExact(1, 0, resolution + 1).map((p) =>
-        invLerp(d3.quantile(sortedData, p), ...DATA_RANGE)
+        invLerp(d3.quantile(sortedData, p), ...range)
       );
 
       const glyph = bucketGlyph(height, width, levelToDropletLevel);
@@ -386,7 +405,7 @@ export function DropletGlyph({ sortedData, width, height, resolution = 4 }) {
   return <svg ref={(e) => void (svgElement.current = d3.select(e))}></svg>;
 }
 
-function DotHistogramHoriz({ data, width, height, numCircles = 25 }) {
+function DotHistogramHoriz({ data, range, width, height, numCircles = 25 }) {
   const CHART_MARGIN = { top: 40, right: 10, bottom: 40, left: 10 };
 
   const svgElement = useRef();
@@ -410,7 +429,7 @@ function DotHistogramHoriz({ data, width, height, numCircles = 25 }) {
   useLayoutEffect(
     function onDataChange() {
       const domain = [0, data.length];
-      const x = d3.scaleLinear().domain(DATA_RANGE).range([0, width]);
+      const x = d3.scaleLinear().domain(range).range([0, width]);
       const y = d3.scaleLinear().domain(domain).range([height, 0]);
 
       const svgContainer = svgElement.current
@@ -429,7 +448,7 @@ function DotHistogramHoriz({ data, width, height, numCircles = 25 }) {
         width,
         height,
         data.length / numCircles,
-        DATA_RANGE
+        range
       );
 
       const svgCircles = svgElement.current
@@ -458,7 +477,7 @@ function DotHistogramHoriz({ data, width, height, numCircles = 25 }) {
   return <svg ref={(e) => void (svgElement.current = d3.select(e))}></svg>;
 }
 
-function DotHistogramVert({ data, width, height, numCircles = 25 }) {
+function DotHistogramVert({ data, range, width, height, numCircles = 25 }) {
   const CHART_MARGIN = { top: 40, right: 10, bottom: 40, left: 45 };
 
   const svgElement = useRef();
@@ -487,7 +506,7 @@ function DotHistogramVert({ data, width, height, numCircles = 25 }) {
     function onDataChange() {
       const domain = [0, data.length];
       const x = d3.scaleLinear().domain(domain).range([0, width]);
-      const y = d3.scaleLinear().domain(DATA_RANGE).range([height, 0]);
+      const y = d3.scaleLinear().domain(range).range([height, 0]);
 
       const svgContainer = svgElement.current
         .select(".graph-area")
@@ -504,7 +523,7 @@ function DotHistogramVert({ data, width, height, numCircles = 25 }) {
         height,
         width,
         data.length / numCircles,
-        DATA_RANGE
+        range
       );
 
       const svgCircles = svgElement.current
