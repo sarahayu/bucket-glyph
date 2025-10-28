@@ -4,17 +4,17 @@
 
 This repository serves the double purpose of providing code for the Bucket Glyph library and providing example code showing how to use the Bucket Glyph library.
 
-Bucket Glyph is a library of utility functions for rendering bucket glyphs, a heatmap-like visualization for numerical data, as well as quantile histograms, a variation of a classic histogram as explored by [Matthew Kay](https://dl.acm.org/doi/10.1145/2858036.2858558). This codebase is motivated by the [COEQWAL](https://live-coeqwal-ca.pantheon.berkeley.edu/) project's need to visualize water supply data in the California Central Valley in an intuitive way to the general public.
+Bucket Glyph is a library of utility functions for rendering gradient glyphs, a heatmap-like visualization for numerical data, as well as quantile histograms, a variation of a classic histogram as explored by [Matthew Kay](https://dl.acm.org/doi/10.1145/2858036.2858558). This codebase is motivated by the [COEQWAL](https://live-coeqwal-ca.pantheon.berkeley.edu/) project's need to visualize water supply data in the California Central Valley in an intuitive way to the general public.
 
 ## Features
 
-This library provides utility functions for generating bucket glyphs.
+This library provides utility functions for generating gradient glyphs.
 
-![Bucket glyph](img/bucket.png)
+![Bucket-shaped gradient glyph](img/bucket.png)
 
 There is also functionality for customizing the shape of the glyph and the level function to accomodate volume differences for irregular shapes.
 
-![Different shapes of bucket glyphs](img/different-buckets.png)
+![Different shapes of gradient glyphs](img/different-buckets.png)
 
 This library also provides functions for generating quantile histograms that may be used to supplement the bucket visualization.
 
